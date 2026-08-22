@@ -1,0 +1,22 @@
+{
+  "name": "dropcode-signaling-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DropCode WebRTC signaling server on Cloudflare Workers + Durable Objects — relays offer/answer/ICE only, never touches file bytes.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "login": "wrangler login"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "ws": "^8.21.3"
+  }
+}

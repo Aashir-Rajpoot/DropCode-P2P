@@ -1,0 +1,50 @@
+name = "dropcode-signaling"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+# --- Durable Object binding -------------------------------------------------
+# env.ROOMS in src/index.js resolves to the SignalingRoom class in src/room.js.
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "SignalingRoom"
+
+# SQLite-backed storage for the Durable Object (current default/recommended
+# storage backend for new Durable Object classes).
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SignalingRoom"]
+
+# --- Plain (non-secret) environment variables -------------------------------
+# Change ALLOWED_ORIGINS to match every origin your frontend is actually
+# served from. Comma-separated, no spaces, no trailing slash.
+#
+# ROOT-CAUSE NOTE: this used to default to a Cloudflare Pages domain
+# (https://dropcode-p2p.pages.dev), but this project's authoritative
+# deployment target is GitHub Pages, not Cloudflare Pages. A GitHub Pages
+# origin (https://YOUR-USERNAME.github.io) was never on this list, so every
+# WebSocket upgrade from the real deployed frontend got HTTP 403 — which
+# shows up in the browser as a generic "can't connect" / connection failure,
+# not a CORS error. That mismatch was the main reason this previously didn't
+# work in real-world use. Replace YOUR-USERNAME below with your actual GitHub
+# username before deploying (see README.md for the exact GitHub Pages URL
+# format, which differs depending on whether Pages serves the whole repo or
+# a project subpath).
+[vars]
+ALLOWED_ORIGINS = "https://YOUR-USERNAME.github.io,http://localhost:3000,http://127.0.0.1:3000"
+ROOM_TTL_MINUTES = "30"
+MAX_JOIN_ATTEMPTS = "8"
+LOCKOUT_WINDOW_MINUTES = "5"
+LOCKOUT_DURATION_MINUTES = "10"
+
+# --- Secrets (do NOT put these here — see README.md) ------------------------
+# Preferred: Cloudflare Realtime TURN, short-lived credentials minted
+# server-side per request. Set via `wrangler secret put`:
+#   CF_TURN_KEY_ID        the TURN key's uid, from the Cloudflare dashboard
+#                          (Realtime -> TURN) or `POST /accounts/{id}/calls/turn_keys`
+#   CF_TURN_API_TOKEN     an API token with "Calls Write" permission
+#
+# Fallback (only used if the two above aren't set): a static, long-lived
+# credential from any other TURN provider (coturn, Twilio, Metered, Xirsys):
+#   TURN_URLS, TURN_USERNAME, TURN_CREDENTIAL
+#
+# Leave all five unset to run STUN-only.

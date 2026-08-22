@@ -1,0 +1,49 @@
+name: Deploy frontend to GitHub Pages
+
+# ROOT CAUSE THIS FIXES:
+# index.html lives in frontend/, not at the repo root. GitHub Pages'
+# default "deploy from a branch" mode only serves files from the repo
+# root (or /docs), so it would return 404 for every page. This workflow
+# uses GitHub's official Pages Actions to publish the frontend/ directory
+# itself as the site root instead, without needing to move any files or
+# maintain a separate gh-pages branch by hand.
+#
+# One-time setup required in the GitHub UI:
+#   Repo -> Settings -> Pages -> Build and deployment -> Source: "GitHub Actions"
+# (Not "Deploy from a branch" — that setting is what causes the 404.)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload frontend/ as the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
